@@ -13,16 +13,16 @@ workerSlider.addEventListener('input', (e) => {
 // Handle form submission
 crawlerForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    
+
     const searchQuery = document.getElementById('searchQuery').value;
     const numPages = parseInt(document.getElementById('numPages').value);
     const numWorkers = parseInt(workerSlider.value);
-    
+
     // Show loading
     loading.style.display = 'block';
     results.style.display = 'none';
     startBtn.disabled = true;
-    
+
     try {
         const response = await fetch('/crawl', {
             method: 'POST',
@@ -35,9 +35,9 @@ crawlerForm.addEventListener('submit', async (e) => {
                 workers: numWorkers
             })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             displayResults(data.properties, numWorkers);
             loading.style.display = 'none';
@@ -50,7 +50,7 @@ crawlerForm.addEventListener('submit', async (e) => {
         alert('Error connecting to server: ' + error);
         loading.style.display = 'none';
     }
-    
+
     startBtn.disabled = false;
 });
 
@@ -58,7 +58,7 @@ function displayResults(properties, workers) {
     // Display stats
     const statsContainer = document.getElementById('statsContainer');
     const uniqueLocations = [...new Set(properties.map(p => p.location))].length;
-    
+
     statsContainer.innerHTML = `
         <div class="stat-item">
             <div class="stat-number">${properties.length}</div>
@@ -77,15 +77,20 @@ function displayResults(properties, workers) {
             <div class="stat-label">Locations</div>
         </div>
     `;
-    
+
     // Display properties
     const propertiesGrid = document.getElementById('propertiesGrid');
     propertiesGrid.innerHTML = properties.map(prop => `
         <div class="property-card">
             <div class="property-header">
-                <div class="property-title">${prop.title}</div>
-                <div class="property-price">${prop.price}</div>
-                <div class="property-location">📍 ${prop.location}</div>
+                <img src="${prop.images[0]}" alt="${prop.title}" class="property-image" 
+                     onerror="this.src='https://via.placeholder.com/800x600?text=No+Image'">
+                <div class="property-badge">📸 ${prop.images.length} Photo${prop.images.length > 1 ? 's' : ''}</div>
+                <div class="property-info">
+                    <div class="property-title">${prop.title}</div>
+                    <div class="property-price">${prop.price}</div>
+                    <div class="property-location">📍 ${prop.location}</div>
+                </div>
             </div>
             <div class="property-body">
                 <div class="property-specs">

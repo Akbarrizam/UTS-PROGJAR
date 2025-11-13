@@ -1,3 +1,4 @@
+# app.py
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 import requests
@@ -14,12 +15,12 @@ CORS(app)
 
 class Rumah123Crawler:
     def __init__(self, max_workers=5):
-        self.base_url = "https://www.rumah123.com/"
+        self.base_url = "https://www.rumah123.com"
         self.max_workers = max_workers
         self.properties = []
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,/;q=0.8',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
             'Accept-Language': 'id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7',
             'Referer': 'https://www.rumah123.com/'
         }
@@ -67,6 +68,9 @@ class Rumah123Crawler:
             description = self._extract_text(soup, ['[class*="description"]', 'p'], max_len=300)
             agent = self._extract_text(soup, ['[class*="agent"]'])
             
+            # Extract images
+            images = self._extract_images(soup)
+            
             time.sleep(random.uniform(0.5, 1.5))
             
             return {
@@ -80,6 +84,7 @@ class Rumah123Crawler:
                 'building_size': building_size,
                 'description': description,
                 'agent': agent,
+                'images': images,
                 'scraped_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             }
         except Exception as e:
@@ -110,6 +115,50 @@ class Rumah123Crawler:
     def _extract_number(self, text, pattern, unit):
         match = re.search(pattern, text, re.IGNORECASE)
         return f"{match.group(1)} {unit}" if match else "N/A"
+    
+    def _extract_images(self, soup):
+        """Extract image URLs from property page"""
+        images = []
+        
+        # Try multiple selectors for images
+        img_selectors = [
+            'img[src*="rumah123"]',
+            'img[data-src*="rumah123"]',
+            'img[class*="gallery"]',
+            'img[class*="photo"]',
+            'img[class*="listing"]',
+            '[class*="gallery"] img',
+            '[class*="slider"] img',
+            '[class*="carousel"] img'
+        ]
+        
+        for selector in img_selectors:
+            img_tags = soup.select(selector)
+            for img in img_tags:
+                # Try src first, then data-src
+                img_url = img.get('src') or img.get('data-src') or img.get('data-lazy-src')
+                
+                if img_url and img_url.startswith('http'):
+                    # Filter out small images (icons, logos)
+                    if any(x in img_url.lower() for x in ['icon', 'logo', 'avatar', 'banner']):
+                        continue
+                    
+                    # Add unique images only
+                    if img_url not in images:
+                        images.append(img_url)
+                        
+                    # Limit to 5 images
+                    if len(images) >= 5:
+                        break
+            
+            if len(images) >= 5:
+                break
+        
+        # If no images found, add placeholder
+        if not images:
+            images.append('https://via.placeholder.com/800x600?text=No+Image')
+        
+        return images
     
     def crawl(self, search_query="kos", pages=2):
         print(f"🚀 Starting crawler: '{search_query}'")
@@ -162,7 +211,7 @@ if __name__ == '__main__':
     print("=" * 60)
     print("\n🌐 Server starting...")
     print("📍 Open: http://localhost:5000")
-    print("\n⚠  Press CTRL+C to stop")
+    print("\n⚠️  Press CTRL+C to stop")
     print("=" * 60 + "\n")
     
     app.run(debug=True, host='0.0.0.0', port=5000)
