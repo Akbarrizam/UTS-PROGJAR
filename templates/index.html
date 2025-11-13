@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rumah123 Professional Crawler</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏠 Rumah123 Professional Crawler</h1>
+            <p>Advanced Multi-threaded Web Scraping Platform</p>
+        </div>
+        
+        <div class="control-panel">
+            <div class="control-header">
+                <span class="control-icon">⚙️</span>
+                <h2>Crawler Configuration</h2>
+            </div>
+            
+            <form id="crawlerForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>🔍 Search Query</label>
+                        <input type="text" id="searchQuery" value="kos" placeholder="e.g., rumah, apartemen, villa" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>📄 Number of Pages</label>
+                        <input type="number" id="numPages" value="2" min="1" max="10" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>👷 Worker Threads</label>
+                    <div class="worker-slider-container">
+                        <input type="range" id="workerSlider" class="worker-slider" min="1" max="20" value="5">
+                        <div class="worker-value" id="workerValue">5</div>
+                    </div>
+                </div>
+                
+                <div class="info-box">
+                    <p>💡 <strong>Worker threads</strong> menentukan berapa banyak properti yang di-scrape secara paralel. Lebih banyak workers = lebih cepat, tapi jangan terlalu banyak untuk menghindari rate limiting.</p>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" id="startBtn">
+                    <span>🚀</span>
+                    <span>Start Crawling</span>
+                </button>
+            </form>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <div class="loading-text">Crawling in Progress...</div>
+            <div class="loading-subtext">Please wait...</div>
+        </div>
+        
+        <div class="results-container" id="results">
+            <div class="results-header">
+                <div class="results-stats" id="statsContainer"></div>
+            </div>
+            <div class="properties-grid" id="propertiesGrid"></div>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
